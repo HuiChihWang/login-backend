@@ -1,7 +1,10 @@
 package com.example.loginbackend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,7 +15,17 @@ import java.util.Collections;
 @Data
 @Entity
 @Table(name = "app_users")
+@AllArgsConstructor
+@NoArgsConstructor
 public class AppUser implements UserDetails {
+
+    public AppUser(String username, String email, String name, String password) {
+        this.username = username;
+        this.email = email;
+        this.name = name;
+        this.password = password;
+    }
+
     @Id
     @GeneratedValue
     private long id;
@@ -27,6 +40,7 @@ public class AppUser implements UserDetails {
     private String name;
 
     @Column(nullable = false)
+    @JsonIgnore
     private String password;
 
     @Column(nullable = false)
