@@ -3,6 +3,8 @@ package com.example.loginbackend.service;
 import com.example.loginbackend.entity.AppUser;
 import com.example.loginbackend.entity.AppUserRole;
 import com.example.loginbackend.entity.ConfirmationToken;
+import com.example.loginbackend.exception.TokenExpiredException;
+import com.example.loginbackend.exception.TokenNotExistedException;
 import com.example.loginbackend.exception.UserAlreadyExistedException;
 import com.example.loginbackend.repository.AppUserRepository;
 import com.example.loginbackend.request.RegistrationRequest;
@@ -14,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -30,6 +33,7 @@ public class RegistrationService {
     @NonNull
     private final ConfirmationTokenService tokenService;
 
+    @Transactional
     public AppUser registration(RegistrationRequest request) {
         Optional<AppUser> userWithUsername = userRepository.findAppUserByUsername(request.username());
         if (userWithUsername.isPresent()) {
@@ -58,5 +62,14 @@ public class RegistrationService {
 
         // TODO: sending confirmation Email
         return savedUser;
+    }
+
+    public String activateUserByConfirmationToken(String strToken) {
+        try {
+            tokenService.activateConfirmationToken(strToken);
+        } catch (TokenExpiredException | TokenNotExistedException activationException) {
+            return activationException.getMessage();
+        }
+        return "";
     }
 }

@@ -29,12 +29,23 @@ public class ConfirmationToken {
         this.user = user;
     }
 
+    @Column(nullable = false, unique = true)
     private String token;
+
+    @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
     private LocalDateTime expiredAt;
     private LocalDateTime confirmedAt;
 
-    @ManyToOne
+    @ManyToOne(
+            cascade = {
+                    CascadeType.REFRESH,
+                    CascadeType.MERGE,
+                    CascadeType.DETACH,
+            }
+    )
     @JoinColumn(
             nullable = false,
             name = "user_id",

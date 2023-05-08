@@ -2,11 +2,14 @@ package com.example.loginbackend.service;
 
 import com.example.loginbackend.entity.AppUser;
 import com.example.loginbackend.entity.ConfirmationToken;
+import com.example.loginbackend.exception.TokenExpiredException;
 import com.example.loginbackend.exception.TokenGenerationFailException;
+import com.example.loginbackend.exception.TokenNotExistedException;
 import com.example.loginbackend.repository.ConfirmationTokenRepository;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -20,6 +23,7 @@ public class ConfirmationTokenService {
     @NonNull
     private final ConfirmationTokenRepository tokenRepository;
 
+//    @Transactional
     public ConfirmationToken generateConfirmationToken(AppUser user) {
         // TODO: check if there is non-activated token of user or non-expired token
 
@@ -36,11 +40,45 @@ public class ConfirmationTokenService {
         return tokenRepository.save(token);
     }
 
+    public ConfirmationToken getConfirmationToken(String token) {
+        return tokenRepository
+                .findConfirmationTokenByToken(token)
+                .orElseThrow(() -> new TokenNotExistedException(
+                        String.format("Token %s does not exist.", token)
+                ));
+    }
+
+    @Transactional
+    public void activateConfirmationToken(String strToken) {
+        ConfirmationToken token = getConfirmationToken(strToken);
+
+        if (isTokenUsed(strToken)) {
+            throw new TokenExpiredException(
+                    String.format("Token %s has been already used.", strToken)
+            );
+        }
+
+        if (isTokenExpired(strToken)) {
+            throw new TokenExpiredException(
+                    String.format(
+                            "The link was expired at %s",
+                            token.getExpiredAt().toString())
+            );
+        }
+
+        token.setConfirmedAt(LocalDateTime.now());
+
+        AppUser user = token.getUser();
+        user.setEnabled(true);
+
+        tokenRepository.save(token);
+    }
+
     private String generateNewTokenString() {
         String token = "";
         int generateTimes = 0;
 
-        while(generateTimes == 0 || isTokenExist(token)) {
+        while (generateTimes == 0 || isTokenExist(token)) {
             if (generateTimes >= MAXIMUM_GENERATE_TIMES) {
                 throw new TokenGenerationFailException("Cannot generate confirmation token");
             }
@@ -53,5 +91,16 @@ public class ConfirmationTokenService {
 
     private boolean isTokenExist(String token) {
         return tokenRepository.existsByToken(token);
+    }
+
+    private boolean isTokenExpired(String strToken) {
+        ConfirmationToken token = getConfirmationToken(strToken);
+        return LocalDateTime.now().isAfter(token.getExpiredAt());
+    }
+
+    private boolean isTokenUsed(String strToken) {
+        ConfirmationToken token = getConfirmationToken(strToken);
+        AppUser user = token.getUser();
+        return user.isEnabled();
     }
 }
