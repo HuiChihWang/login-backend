@@ -1,6 +1,7 @@
 package com.example.loginbackend.service;
 
 import com.example.loginbackend.entity.AppUser;
+import com.example.loginbackend.entity.AppUserRole;
 import com.example.loginbackend.exception.UserAlreadyExistedException;
 import com.example.loginbackend.repository.AppUserRepository;
 import com.example.loginbackend.request.RegistrationRequest;
@@ -37,7 +38,8 @@ public class RegistrationService {
                 request.username(),
                 request.email(),
                 request.name(),
-                encryptPassword
+                encryptPassword,
+                AppUserRole.USER
         );
 
         return userRepository.save(newUser);
