@@ -9,6 +9,8 @@ import com.example.loginbackend.exception.UserAlreadyExistedException;
 import com.example.loginbackend.repository.AppUserRepository;
 import com.example.loginbackend.request.RegistrationRequest;
 
+import com.example.loginbackend.utility.EmailTemplate;
+import com.example.loginbackend.utility.LinkUtility;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
@@ -23,12 +25,18 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class RegistrationService {
-    private static final Logger logger = LoggerFactory.getLogger(RegistrationService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RegistrationService.class);
     @NonNull
     private final AppUserRepository userRepository;
 
     @NonNull
     private final PasswordEncoder passwordEncoder;
+
+    @NonNull
+    private final EmailService emailService;
+
+    @NonNull
+    private final EmailTemplate emailTemplate;
 
     @NonNull
     private final ConfirmationTokenService tokenService;
@@ -56,11 +64,19 @@ public class RegistrationService {
 
         AppUser savedUser = userRepository.save(newUser);
 
-        // TODO: call token service to generate token
         ConfirmationToken token = tokenService.generateConfirmationToken(savedUser);
-        logger.info("Register new user {} with confirmation token {}", savedUser.getId(), token.getToken());
+        LOGGER.info("Register new user {} with confirmation token {}", savedUser.getId(), token.getToken());
 
-        // TODO: sending confirmation Email
+        String confirmationLink = LinkUtility.buildConfirmationLink(token.getToken());
+        String mailContent = emailTemplate.buildConfirmationEmail(savedUser.getName(), confirmationLink);
+        emailService.sendEmail(
+                savedUser.getEmail(),
+                String.format(
+                        "Hi %s, Please Activate Your Newly Registered Account!",
+                        savedUser.getUsername()
+                ),
+                mailContent
+        );
         return savedUser;
     }
 
@@ -71,5 +87,10 @@ public class RegistrationService {
             return activationException.getMessage();
         }
         return "";
+    }
+
+    // TODO: add resending confirmation mail service
+    public void resendConfirmationEmail(AppUser user) {
+        ConfirmationToken newGeneratedToken = tokenService.generateConfirmationToken(user);
     }
 }
