@@ -8,8 +8,10 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 @Data
 @Entity
@@ -41,6 +43,13 @@ public class AppUser implements UserDetails {
 
     @Column(nullable = false)
     private String password;
+
+    @OneToMany(
+            mappedBy = "user",
+            cascade = CascadeType.REMOVE,
+            fetch = FetchType.LAZY
+    )
+    private List<ConfirmationToken> tokens = new ArrayList<>();
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)

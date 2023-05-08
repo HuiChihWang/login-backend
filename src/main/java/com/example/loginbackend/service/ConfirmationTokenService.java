@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -23,11 +25,18 @@ public class ConfirmationTokenService {
     @NonNull
     private final ConfirmationTokenRepository tokenRepository;
 
-//    @Transactional
+    @Transactional
     public ConfirmationToken generateConfirmationToken(AppUser user) {
-        // TODO: check if there is non-activated token of user or non-expired token
+        if (user.isEnabled()) {
+            throw new TokenGenerationFailException(String.format("User with id %d has been activated", user.getId()));
+        }
 
-        // create token for user if there is no
+        ConfirmationToken latestToken = getLatestToken(user);
+        if (latestToken != null) {
+            latestToken.setExpiredAt(LocalDateTime.now());
+            tokenRepository.save(latestToken);
+        }
+
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime expiredTime = now.plusMinutes(TOKEN_LIFE_MINUTES);
         ConfirmationToken token = new ConfirmationToken(
@@ -53,9 +62,7 @@ public class ConfirmationTokenService {
         ConfirmationToken token = getConfirmationToken(strToken);
 
         if (isTokenUsed(strToken)) {
-            throw new TokenExpiredException(
-                    String.format("Token %s has been already used.", strToken)
-            );
+            throw new TokenExpiredException("User has already been activated.");
         }
 
         if (isTokenExpired(strToken)) {
@@ -102,5 +109,18 @@ public class ConfirmationTokenService {
         ConfirmationToken token = getConfirmationToken(strToken);
         AppUser user = token.getUser();
         return user.isEnabled();
+    }
+    private ConfirmationToken getLatestToken(AppUser user) {
+        List<ConfirmationToken> tokens = user.getTokens();
+
+        if (tokens.isEmpty()) {
+            return null;
+        }
+
+        return Collections.max(tokens, (token1, token2) -> {
+            LocalDateTime creationDate1 = token1.getCreatedAt();
+            LocalDateTime creationDate2 = token2.getCreatedAt();
+           return creationDate1.compareTo(creationDate2);
+        });
     }
 }
