@@ -1,7 +1,7 @@
 package com.example.loginbackend.dto;
 
 public record UserDTO(
-        long id,
+        long userId,
         String name,
         String username,
         String email
