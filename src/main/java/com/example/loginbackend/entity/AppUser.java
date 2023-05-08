@@ -1,6 +1,5 @@
 package com.example.loginbackend.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,11 +18,12 @@ import java.util.Collections;
 @NoArgsConstructor
 public class AppUser implements UserDetails {
 
-    public AppUser(String username, String email, String name, String password) {
+    public AppUser(String username, String email, String name, String password, AppUserRole role) {
         this.username = username;
         this.email = email;
         this.name = name;
         this.password = password;
+        this.role = role;
     }
 
     @Id
@@ -40,7 +40,6 @@ public class AppUser implements UserDetails {
     private String name;
 
     @Column(nullable = false)
-    @JsonIgnore
     private String password;
 
     @Column(nullable = false)
