@@ -12,5 +12,13 @@ services:
       - db-data:/data/postgres
     restart: unless-stopped
 
+  maildev:
+    container_name: spring-maildev
+    image: maildev/maildev
+    ports:
+      - "1025:1025"
+      - "1080:1080"
+    restart: unless-stopped
+
 volumes:
   db-data:
