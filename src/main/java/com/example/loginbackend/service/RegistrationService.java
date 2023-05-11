@@ -59,7 +59,7 @@ public class RegistrationService {
                 request.email(),
                 request.name(),
                 encryptPassword,
-                AppUserRole.USER
+                AppUserRole.ROLE_USER
         );
 
         AppUser savedUser = userRepository.save(newUser);

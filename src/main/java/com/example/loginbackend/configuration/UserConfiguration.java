@@ -25,15 +25,15 @@ public class UserConfiguration {
 
     @Bean
     CommandLineRunner createAdmin() {
-        String encodedPwd = encoder.encode("@Taya87136");
+        String encodedPwd = encoder.encode("admin");
         AppUser user = AppUser.builder()
                 .isEnabled(true)
                 .isLocked(false)
-                .username("taya30621")
+                .username("admin")
                 .password(encodedPwd)
                 .email("taya30621@gmail.com")
                 .name("Hui Chih Wang")
-                .role(AppUserRole.ADMIN)
+                .role(AppUserRole.ROLE_ADMIN)
                 .build();
 
         AppUser admin = userRepository.save(user);
@@ -51,7 +51,7 @@ public class UserConfiguration {
                 .password(encodedPwd)
                 .email("taya87136@gmail.com")
                 .name("Gilbert Wang")
-                .role(AppUserRole.USER)
+                .role(AppUserRole.ROLE_USER)
                 .build();
 
         AppUser newUser = userRepository.save(user);
