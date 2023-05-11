@@ -1,5 +1,6 @@
 package com.example.loginbackend.configuration;
 
+import com.example.loginbackend.entity.AppUserRole;
 import lombok.AllArgsConstructor;
 
 import org.springframework.context.annotation.Bean;
@@ -9,34 +10,33 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.RequestMatcher;
+
+import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
 
 @Configuration
 @AllArgsConstructor
 @EnableWebSecurity
 public class SecurityConfiguration {
-    private final JwtAuthFilter jwtAuthFilter;
-    private final AuthenticationProvider authProvider;
 
-    private final RequestMatcher requestMatcher;
+    private final AuthenticationProvider authProvider;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
-                .authorizeHttpRequests()
-                .requestMatchers(requestMatcher)
-//                .anyRequest()
-                .permitAll()
-                .anyRequest()
-                .authenticated()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
+                .authorizeHttpRequests(req -> req
+                        .requestMatchers(antMatcher("/public/**")).permitAll()
+                        .requestMatchers(antMatcher("/api/v*/register/**")).permitAll()
+                        .requestMatchers(antMatcher("/api/v*/admin")).hasRole(AppUserRole.ADMIN.name())
+                        .anyRequest().authenticated()
+                )
                 .authenticationProvider(authProvider)
-//                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-                .httpBasic();
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .and()
+//                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .formLogin();
+
         return http.build();
     }
 }

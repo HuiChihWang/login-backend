@@ -1,5 +1,6 @@
 package com.example.loginbackend.configuration;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,14 +11,13 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Configuration
 @RequiredArgsConstructor
 public class AppAuthConfiguration {
-
+    @NonNull
     private final UserDetailsService appUserService;
+
     @Bean
     public AuthenticationProvider authenticationProvider(PasswordEncoder pwdEncoder) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -34,10 +34,5 @@ public class AppAuthConfiguration {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public RequestMatcher requestMatcher() {
-        return new AntPathRequestMatcher("/api/v*/register/**");
     }
 }
