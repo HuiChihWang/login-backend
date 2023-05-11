@@ -2,6 +2,7 @@ package com.example.loginbackend.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 @Data
+@Builder
 @Entity
 @Table(name = "app_users")
 @AllArgsConstructor
