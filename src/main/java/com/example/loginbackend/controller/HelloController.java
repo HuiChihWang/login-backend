@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class HelloController {
     @NonNull
     private final AppUserService userService;
-    @GetMapping("/public/hello")
+
+    @GetMapping("/public")
     public String helloFromWorld() {
         return "Hello From World";
     }
