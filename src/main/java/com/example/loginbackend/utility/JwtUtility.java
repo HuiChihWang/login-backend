@@ -1,7 +1,6 @@
 package com.example.loginbackend.utility;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -33,11 +32,11 @@ public class JwtUtility {
     }
 
     public String getUsernameFromToken(String token) {
-        return extractClaims(token, Claims::getSubject);
+        return extractClaimsByGetter(token, Claims::getSubject);
     }
 
     public Date getExpirationDateFromToken(String token) {
-        return extractClaims(token, Claims::getExpiration);
+        return extractClaimsByGetter(token, Claims::getExpiration);
     }
 
     public boolean isTokenValid(String token, UserDetails user) {
@@ -60,35 +59,33 @@ public class JwtUtility {
         return issueToken(user, new HashMap<>());
     }
 
-    public String issueToken(UserDetails user, Map<String, ?> extraClaims) {
+    public String issueToken(UserDetails user, Map<String, Object> extraClaims) {
         Instant now = Instant.now();
         Instant expirationTime = now.plus(Duration.ofHours(JWT_TOKEN_LIFE_HOURS));
 
         return Jwts.builder()
+                .addClaims(extraClaims)
                 .setSubject(user.getUsername())
                 .setIssuedAt(Date.from(now))
-                .setExpiration(java.util.Date.from(expirationTime))
-                .setClaims(extraClaims)
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .setExpiration(Date.from(expirationTime))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    private <T> T extractClaims(String token, Function<Claims, T> getter) {
+    private <T> T extractClaimsByGetter(String token, Function<Claims, T> getter) {
         final Claims claims = extractClaims(token);
         return getter.apply(claims);
     }
 
-    private Claims extractClaims(String token) {
-        Key siginInKey = getSignInKey();
-        JwtParser parser = Jwts.parserBuilder().setSigningKey(siginInKey).build();
-        return parser.parseClaimsJwt(token).getBody();
+    public Claims extractClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
-    private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(JWT_SECRET_KEY);
-        return Keys.hmacShaKeyFor(keyBytes);
+    private Key getSigningKey() {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(JWT_SECRET_KEY));
     }
-
-
-
 }

@@ -22,6 +22,11 @@ public class HelloController {
         return "Hello From World";
     }
 
+    @GetMapping("/hello")
+    public String helloToMember() {
+        return "hello to member";
+    }
+
     @GetMapping("/hello/{id}")
     public String helloVIPMember(@PathVariable("id") long userId, Authentication authentication) {
         AppUser currentUser = (AppUser) authentication.getPrincipal();

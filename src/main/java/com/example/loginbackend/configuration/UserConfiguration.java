@@ -56,7 +56,8 @@ public class UserConfiguration {
 
         AppUser newUser = userRepository.save(user);
 
-        return args -> LOGGER.info("Create new user {}", newUser);
+        return args -> {
+            LOGGER.info("Create new user {}", newUser);
+        };
     }
-
 }

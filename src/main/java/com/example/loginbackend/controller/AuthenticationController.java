@@ -2,7 +2,6 @@ package com.example.loginbackend.controller;
 
 import com.example.loginbackend.request.AuthenticationRequest;
 import com.example.loginbackend.utility.JwtUtility;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,12 +25,12 @@ public class AuthenticationController {
 
     @PostMapping
     ResponseEntity<?> authenticate(@RequestBody AuthenticationRequest request) {
-//        authManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(
-//                        request.username(),
-//                        request.password()
-//                )
-//        );
+        authManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.username(),
+                        request.password()
+                )
+        );
 
         UserDetails user = userService.loadUserByUsername(request.username());
         String newJwtToken = jwtUtility.issueToken(user);
